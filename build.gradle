@@ -1,34 +1,134 @@
 plugins {
     id 'java'
+    id 'java-library' // <<< api를 사용하며 편의상 추가
     id 'org.springframework.boot' version '3.1.3'
     id 'io.spring.dependency-management' version '1.1.3'
+
+    id 'com.google.protobuf' version '0.9.4'
 }
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 
-java {
-    sourceCompatibility = '20'
+dependencies {
+    implementation 'org.yaml:snakeyaml'
 }
 
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
+allprojects {
+    group = 'com.example'
+    version = '0.0.1-SNAPSHOT'
+
+    apply plugin: 'java'
+    apply plugin: 'java-library'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'com.google.protobuf'
+
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+
+    configurations {
+        compileOnly {
+            extendsFrom annotationProcessor
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    tasks.named('test') {
+        useJUnitPlatform()
+    }
+
+    // Enable Java Preview (1)
+    compileJava {
+        options.compilerArgs += [
+                '--enable-preview',
+                '-Amapstruct.defaultComponentModel=spring'
+        ]
+
+    }
+
+    // Enable Java Preview (2)
+    compileTestJava {
+        options.compilerArgs += [
+                '--enable-preview',
+//                '-Amapstruct.defaultComponentModel=spring'
+        ]
+    }
+
+    // Enable Java Preview (3)
+    test {
+        useJUnitPlatform()
+        jvmArgs([
+                '--enable-preview',
+//                '-Amapstruct.defaultComponentModel=spring'
+                '-Dspring.profiles.active=local'
+        ])
     }
 }
 
-repositories {
-    mavenCentral()
+subprojects {
+    dependencies {
+        developmentOnly 'org.springframework.boot:spring-boot-devtools'
+        annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+        // lombok
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+
+        // Logging
+        implementation 'org.apache.logging.log4j:log4j-api'
+        implementation 'org.apache.logging.log4j:log4j-core'
+
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    }
+
+    bootJar {
+        enabled = false
+    }
 }
 
-dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    compileOnly 'org.projectlombok:lombok'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+project(commonModule) {
+    dependencies {
+        implementation 'org.springframework:spring-web'
+        implementation 'org.springframework.boot:spring-boot-starter'
+        implementation 'com.fasterxml.jackson.core:jackson-annotations'
+
+        // NTP
+        implementation 'commons-net:commons-net:3.9.0'
+    }
 }
 
-tasks.named('test') {
-    useJUnitPlatform()
+project(clientServiceModule) {
+    dependencies {
+        implementation project(commonModule)
+
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+        implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+        api 'net.devh:grpc-client-spring-boot-starter:2.14.0.RELEASE'
+        api files("$rootDir/server-service/grpc-interface-publisher/grpc/demo-grpc-interface.jar")
+    }
+
+    bootJar {
+        enabled = true
+    }
+}
+
+project(serverServiceModule) {
+    dependencies {
+        implementation project(commonModule)
+
+
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+
+        api 'net.devh:grpc-server-spring-boot-starter:2.14.0.RELEASE'
+        api files("$rootDir/server-service/grpc-interface-publisher/grpc/demo-grpc-interface.jar")
+    }
+
+    bootJar {
+        enabled = true
+    }
 }
