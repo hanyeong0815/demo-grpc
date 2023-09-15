@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: grpc-server
+
+  profiles:
+    active: prod
+
+  mvc:
+    converters:
+      preferred-json-mapper: gson
+
+server:
+  port: 8090

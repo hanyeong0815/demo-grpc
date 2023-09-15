@@ -1,0 +1,16 @@
+server:
+  port: 8080
+
+grpc:
+  client:
+    post:
+      address: static://localhost:8091
+      negotiation-type: plaintext
+
+spring:
+  application:
+    name: demo-client
+
+  mvc:
+    converters:
+      preferred-json-mapper: gson

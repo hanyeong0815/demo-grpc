@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.example.grpc.lib";
+option java_outer_classname = "demoProtobuf";
+
+service Demo {
+  rpc post (Request) returns (Reply) {
+  }
+}
+
+message Request {
+  string message = 1;
+  sint32 number = 2;
+  bool booleanParam = 3;
+}
+
+message Reply {
+  string response = 1;
+}
