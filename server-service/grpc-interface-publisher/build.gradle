@@ -1,0 +1,51 @@
+plugins {
+    id 'java'
+    id 'com.google.protobuf' version '0.9.4'
+}
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'io.grpc:grpc-protobuf:1.57.2'
+    implementation 'io.grpc:grpc-stub:1.57.2'
+    // never update above 2 (protoBuf task doesn't support jakarta package but supports only javax package)
+    compileOnly 'jakarta.annotation:jakarta.annotation-api:1.3.5'
+}
+
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.24.2'
+    }
+    generatedFilesBaseDir = "$projectDir/src/generated"
+    clean {
+        delete generatedFilesBaseDir
+    }
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.57.2'
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc{}
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+    enabled = true
+    archiveFileName = "demo-grpc-interface.jar"
+    destinationDirectory = new File("$rootDir/grpc")
+}

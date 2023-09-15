@@ -27,7 +27,8 @@ public class ClientService {
                     );
             return response.getResponse();
         } catch (StatusRuntimeException e) {
-            throw e;
+            e.printStackTrace();
+            return "실패";
         }
     }
 }
