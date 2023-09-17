@@ -101,15 +101,53 @@ project(commonModule) {
     }
 }
 
+project(grpcInterfaceCoreModule) {
+    dependencies {
+        implementation project(commonModule)
+        implementation 'io.grpc:grpc-protobuf:1.57.2'
+        implementation 'io.grpc:grpc-stub:1.57.2'
+        // never update above 2 (protoBuf task doesn't support jakarta package but supports only javax package)
+        compileOnly 'jakarta.annotation:jakarta.annotation-api:1.3.5'
+    }
+
+    protobuf {
+        protoc {
+            artifact = 'com.google.protobuf:protoc:3.24.2'
+        }
+        generatedFilesBaseDir = "$projectDir/src/generated"
+        clean {
+            delete generatedFilesBaseDir
+        }
+        plugins {
+            grpc {
+                artifact = 'io.grpc:protoc-gen-grpc-java:1.57.2'
+            }
+        }
+        generateProtoTasks {
+            all()*.plugins {
+                grpc{}
+            }
+        }
+    }
+
+    jar {
+        enabled = true
+        archiveFileName = "demo-grpc-interface.jar"
+        destinationDirectory = new File("$rootDir/grpc")
+    }
+}
+
 project(clientServiceModule) {
     dependencies {
         implementation project(commonModule)
+        api project(grpcInterfaceCoreModule)
 
         implementation 'org.springframework.boot:spring-boot-starter-web'
         implementation 'org.springframework.boot:spring-boot-starter-validation'
 
         api 'net.devh:grpc-client-spring-boot-starter:2.14.0.RELEASE'
-        api files("$rootDir/server-service/grpc-interface-publisher/grpc/demo-grpc-interface.jar")
+//        api files("$rootDir/server-service/grpc-interface-publisher/grpc/demo-grpc-interface.jar")
+
     }
 
     bootJar {
@@ -125,7 +163,8 @@ project(serverServiceModule) {
         implementation 'org.springframework.boot:spring-boot-starter-web'
 
         api 'net.devh:grpc-server-spring-boot-starter:2.14.0.RELEASE'
-        api files("$rootDir/server-service/grpc-interface-publisher/grpc/demo-grpc-interface.jar")
+//        api files("$rootDir/server-service/grpc-interface-publisher/grpc/demo-grpc-interface.jar")
+        api project(grpcInterfaceCoreModule)
     }
 
     bootJar {
