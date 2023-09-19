@@ -1,1 +1,8 @@
 rootProject.name = 'demo-grpc'
+
+include 'common'
+
+include 'grpc-interface-core'
+include 'client-service'
+include 'server-service'
+
